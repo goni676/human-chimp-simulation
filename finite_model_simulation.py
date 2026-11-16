@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 # - generation time: 30 years
 # - mutation rate: 1.25e-08
 # - seq length: 2 Gb
+# - rec_rate = 1.1600523082788902e-08 
+# https://github.com/trevorcousins/twin_peaks/blob/main/TMRCA_correlations_annotations_upload.ipynb
 #===========================#
 
 def find_tmrca(tree, carriers):
