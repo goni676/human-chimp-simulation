@@ -1,0 +1,6 @@
+Metric,Finite sites,Infinite sites
+Mutation events,29168.0,29168.0
+Sites,28932.0,29168.0
+Sites with multiple mutations,236.0,0.0
+Mutations fixed in the human sample,2834.0,2849.0
+Fixed mutations (%),9.716127262753703,9.767553483269337
