@@ -10,17 +10,11 @@ import matplotlib.pyplot as plt
 # Demographic model - based on the simulations in "Deep coalescent history of the hominin lineage"
 # - ancestral: 20,000
 # 6 Mya (split: 200,000 generations) - ancestral population splits into proto1 and proto2 
-# - proto1: 20,000
-# - proto2: 20,000
-# 3 Mya (admix: 100,000 generations) - human lineage forms as an 80:20% mixture of proto1 and proto2 
-#                                    - chimpanzee lineage forms as a 50:50% mixture
 # - human: 20,000
 # - chimpanzee: 20,000
-#
 # more parameters:
 # - generation time: 30 years
 # - mutation rate: 1.25e-08
-# - seq length: 2 Gb
 # - rec_rate = 1.1600523082788902e-08 
 # https://github.com/trevorcousins/twin_peaks/blob/main/TMRCA_correlations_annotations_upload.ipynb
 #===========================#
@@ -35,19 +29,14 @@ def find_tmrca(tree, carriers):
 
 N = 20_000
 SPLIT_TIME = 200_000
-ADMIX_TIME = 100_000
-SAMPLES = 100
+SAMPLES = 1000
 
 demography = msprime.Demography()
 demography.add_population(name="Chimpanzee", initial_size=N)
 demography.add_population(name="Human", initial_size=N)
-demography.add_population(name="proto1", initial_size=N)
-demography.add_population(name="proto2", initial_size=N)
 demography.add_population(name="ANC", initial_size=N)
 
-demography.add_population_split(time=SPLIT_TIME, derived=["proto1", "proto2"], ancestral="ANC")
-demography.add_admixture(time=ADMIX_TIME, derived="Human", ancestral=["proto1", "proto2"], proportions=[0.8, 0.2])
-demography.add_admixture(time=ADMIX_TIME, derived="Chimpanzee", ancestral=["proto1", "proto2"], proportions=[0.5, 0.5])
+demography.add_population_split(time=SPLIT_TIME, derived=["Chimpanzee", "Human"], ancestral="ANC")
 
 demography.sort_events()
 
@@ -59,9 +48,9 @@ ts = msprime.sim_ancestry(
     demography=demography,
     ploidy=2,
     sequence_length=2_000_000,
-    recombination_rate=1.1600523082788902e-08,
+    recombination_rate=1.2e-8,
     random_seed=90,
-    record_migrations=True,
+    # record_migrations=True,
 )
 
 
@@ -70,7 +59,7 @@ ts = msprime.sim_ancestry(
 # ts = msprime.sim_ancestry(100, sequence_length=100, random_seed=1234)
 # mts = msprime.sim_mutations(ts, rate=0.01, random_seed=5678)
 
-mts = msprime.sim_mutations(ts, rate=1.25e-08, random_seed=32)
+mts = msprime.sim_mutations(ts, rate=1.3e-8, random_seed=32)
 
 # ts.samples returns an array of the sample *node IDs*
 chimp_samples = np.array(ts.samples(population=0))
@@ -98,7 +87,7 @@ for site in mts.sites():
             tmrca = find_tmrca(tree, human_carriers)
         df_mut.loc[i] = [site.id, mut.id, fixed, mut.inherited_state, mut.derived_state, mut.time, tmrca, human_carriers]
         i += 1
-df_mut.to_csv(f"mutations_by_site_{SAMPLES}.csv", index=False)
+df_mut.to_csv(f"finite_mutations_{SAMPLES}.csv", index=False)
 
 # create variants DF
 i = 0
@@ -109,7 +98,7 @@ for var in mts.variants(samples=human_samples):
     df_var.loc[i] = [var.site.id, var.site.position, var.alleles, np.array(var.alleles)[sorted(alleles_set_in_human)], human_genotypes]
     i += 1
 
-df_var.to_csv(f"variants_by_site_{SAMPLES}.csv", index=False)
+df_var.to_csv(f"finite_variants_{SAMPLES}.csv", index=False)
 
 
 # plot
@@ -128,7 +117,7 @@ def plot_fixation(df, filename, n_bins=100, color="blue"):
     fig.savefig(filename, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-df_mut = pd.read_csv("mutations_by_site_100.csv")
+# df_mut = pd.read_csv("finite_mutations_by_site_1000.csv")
 
 
 #============Probability of fixation as a function of age/tMRCA=========#
@@ -194,4 +183,4 @@ df_mut = pd.read_csv("mutations_by_site_100.csv")
 # plt.savefig("Fixation Probability vs. tMRCA.png", dpi=300, bbox_inches="tight")
 # plt.close()
 
-# print("DONE")
+print("DONE")

@@ -41,22 +41,16 @@ def find_tmrca(tree, carriers):
 #     return True
 
 
-
 N = 20_000
-SAMPLES = 100
 SPLIT_TIME = 200_000
-ADMIX_TIME = 100_000
+SAMPLES = 1000
 
 demography = msprime.Demography()
 demography.add_population(name="Chimpanzee", initial_size=N)
 demography.add_population(name="Human", initial_size=N)
-demography.add_population(name="proto1", initial_size=N)
-demography.add_population(name="proto2", initial_size=N)
 demography.add_population(name="ANC", initial_size=N)
 
-demography.add_population_split(time=SPLIT_TIME, derived=["proto1", "proto2"], ancestral="ANC")
-demography.add_admixture(time=ADMIX_TIME, derived="Human", ancestral=["proto1", "proto2"], proportions=[0.8, 0.2])
-demography.add_admixture(time=ADMIX_TIME, derived="Chimpanzee", ancestral=["proto1", "proto2"], proportions=[0.5, 0.5])
+demography.add_population_split(time=SPLIT_TIME, derived=["Chimpanzee", "Human"], ancestral="ANC")
 
 demography.sort_events()
 
@@ -68,10 +62,18 @@ ts = msprime.sim_ancestry(
     demography=demography,
     ploidy=2,
     sequence_length=2_000_000,
-    recombination_rate=1.1600523082788902e-08,
+    recombination_rate=1.2e-8,
     random_seed=90,
-    record_migrations=True,
+    # record_migrations=True,
 )
+
+
+
+# generic mutation example
+# ts = msprime.sim_ancestry(100, sequence_length=100, random_seed=1234)
+# mts = msprime.sim_mutations(ts, rate=0.01, random_seed=5678)
+
+mts = msprime.sim_mutations(ts, rate=1.3e-8, random_seed=32)
 
 
 # ============infinite sites assumption============= #
